@@ -4,12 +4,16 @@ import com.healthyswatch.manager.SensorManager;
 import com.healthyswatch.sensor.Sensor;
 import com.healthyswatch.sensor.SensorData;
 import com.healthyswatch.sensor.SensorProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class SensorManagerImpl implements SensorManager {
+
+    private final Logger logger = LoggerFactory.getLogger(SensorManager.class);
 
     private final Collection<Sensor<?>> sensors;
     private final Map<Class<? extends Sensor<?>>, Collection<SensorProcessor<?,?>>> processors;
@@ -55,6 +59,8 @@ public class SensorManagerImpl implements SensorManager {
                     }
                 }
             }
+        } catch (Exception exception) {
+            logger.error("Exception while ticking sensors", exception);
         } finally {
             this.tickingLock.readLock().unlock();
         }

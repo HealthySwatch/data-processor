@@ -1,6 +1,5 @@
 package com.healthyswatch.manager.impl;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.healthyswatch.manager.EncryptionManager;
 import com.healthyswatch.model.EncryptionProfile;
@@ -16,10 +15,10 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
-import java.util.Random;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -68,11 +67,11 @@ public class EncryptionManagerImpl implements EncryptionManager {
 
         // Generate IV
         byte[] cipherIVBytes = new byte[16];
-        new Random().nextBytes(cipherIVBytes);
+        new SecureRandom().nextBytes(cipherIVBytes);
 
         // Generate salt
         byte[] kdfSaltBytes = new byte[8];
-        new Random().nextBytes(kdfSaltBytes);
+        new SecureRandom().nextBytes(kdfSaltBytes);
         int cipherAuthTagLen = 128;
         int secretKeyIteration = 100000, secretKeyLength = 256;
         return new EncryptionProfile(cipherIVBytes, kdfSaltBytes,
@@ -91,24 +90,12 @@ public class EncryptionManagerImpl implements EncryptionManager {
     }
 
     private Cipher configureCipher(EncryptionProfile profile, SecretKey secretKey, int mode) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException {
-        JsonElement gcmTagDataArray = buildAdditionalAuthData(profile);
+        JsonElement gcmTagDataArray = profile.toAuthData();
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         GCMParameterSpec spec = new GCMParameterSpec(profile.getCipherAuthTagLength(), profile.getCipherIV());
         cipher.init(mode, secretKey, spec);
         cipher.updateAAD(gcmTagDataArray.toString().getBytes());
         return cipher;
-    }
-
-    private JsonElement buildAdditionalAuthData(EncryptionProfile profile) {
-        JsonArray array = new JsonArray();
-        array.add(Base64.getEncoder().encodeToString(profile.getCipherIV()));
-        array.add(Base64.getEncoder().encodeToString(profile.getSaltKey()));
-        array.add(profile.getSecretKeyIteration());
-        array.add(profile.getSecretKeyLength());
-        array.add(profile.getCipherAuthTagLength());
-        array.add("aes");
-        array.add("gcm");
-        return array;
     }
 
     @Override
@@ -120,8 +107,12 @@ public class EncryptionManagerImpl implements EncryptionManager {
         EncryptionProfile profile = encryptionRepository.getCurrentProfile();
 
         if (profile == null) {
-            encryptionRepository.setCurrentProfile(profile = createEncryptionProfile());
+            profile = createEncryptionProfile();
+        } else {
+            profile = profile.updateCipherIV();
         }
+
+        encryptionRepository.setCurrentProfile(profile);
 
         // Compression
         byte[] dataBytes = deflate(input.getBytes());
@@ -138,10 +129,8 @@ public class EncryptionManagerImpl implements EncryptionManager {
     }
 
     @Override
-    public String decode(String input) throws IOException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, DataFormatException {
+    public String decode(String input, EncryptionProfile profile) throws IOException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, DataFormatException {
         byte[] cipherTextBytes = Base64.getDecoder().decode(input);
-
-        EncryptionProfile profile = encryptionRepository.getCurrentProfile();
 
         if (profile == null) {
             throw new IllegalStateException("unable to decode input if no profile is provided");

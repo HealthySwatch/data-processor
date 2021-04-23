@@ -38,6 +38,7 @@ public class HeartRateSensorProcessor implements SensorProcessor<HeartRateSensor
         } else {
             counters.merge(sensor, -1, (v, a) -> Math.max(v + a, -1));
         }
+        core.getTrackingRepository().addSample(sensor, data);
     }
 
 }

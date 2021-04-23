@@ -38,5 +38,6 @@ public class BloodOxygenSensorProcessor implements SensorProcessor<BloodOxygenSe
         } else {
             counters.merge(sensor, -1, (v, a) -> Math.max(v + a, -1));
         }
+        core.getTrackingRepository().addSample(sensor, data);
     }
 }

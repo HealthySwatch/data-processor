@@ -1,5 +1,7 @@
 package com.healthyswatch.manager;
 
+import com.healthyswatch.model.EncryptionProfile;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -14,6 +16,6 @@ public interface EncryptionManager {
 
     String encode(String input) throws IOException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException;
 
-    String decode(String input) throws IOException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, DataFormatException;
+    String decode(String input, EncryptionProfile profile) throws IOException, IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, DataFormatException;
 
 }
