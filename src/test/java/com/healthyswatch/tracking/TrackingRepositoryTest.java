@@ -1,12 +1,10 @@
 package com.healthyswatch.tracking;
 
 import com.healthyswatch.model.LogEvent;
+import com.healthyswatch.model.LogSample;
 import com.healthyswatch.model.RemoteTrackingSettings;
 import com.healthyswatch.model.Report;
-import com.healthyswatch.model.SavedSensorData;
 import com.healthyswatch.repository.TrackingRepository;
-import com.healthyswatch.sensor.Sensor;
-import com.healthyswatch.sensor.SensorData;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +15,7 @@ public class TrackingRepositoryTest implements TrackingRepository {
 
     private final List<LogEvent> events = new ArrayList<>();
     private final List<Report> reports = new ArrayList<>();
-    private final List<SavedSensorData> samples = new ArrayList<>();
+    private final List<LogSample> samples = new ArrayList<>();
     private final RemoteTrackingSettings trackingSettings = new RemoteTrackingSettings();
 
     private long lastSynchronizationTime;
@@ -28,8 +26,8 @@ public class TrackingRepositoryTest implements TrackingRepository {
     }
 
     @Override
-    public <T extends SensorData> void addSample(Sensor<T> sensor, T sensorData) {
-        this.samples.add(new SavedSensorData(sensor.getSensorType().getSimpleName(), sensorData.getTime(), sensorData.serialize()));
+    public void addSample(LogSample sample) {
+        this.samples.add(sample);
     }
 
     @Override
@@ -43,7 +41,7 @@ public class TrackingRepositoryTest implements TrackingRepository {
     }
 
     @Override
-    public Collection<SavedSensorData> getSamples(long startAt, long endAt) {
+    public Collection<LogSample> getSamples(long startAt, long endAt) {
         return this.samples.stream().filter(e -> e.getTime() >= startAt && e.getTime() < endAt).collect(Collectors.toList());
     }
 

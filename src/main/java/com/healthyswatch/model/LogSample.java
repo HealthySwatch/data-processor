@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class SavedSensorData {
+public class LogSample {
 
-    private final String sensor;
+    private final String type;
     private final long time;
     private final JsonElement data;
 

@@ -9,7 +9,6 @@ import com.healthyswatch.model.LogEvent;
 import com.healthyswatch.repository.EncryptionRepository;
 import com.healthyswatch.repository.TrackingRepository;
 import com.healthyswatch.utils.Base58;
-import org.junit.jupiter.api.Test;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -48,7 +47,7 @@ public class TrackingTests {
         HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
     }
 
-    @Test
+    //@Test
     public void testttt() {
         long now = System.currentTimeMillis();
         EncryptionRepository encryptionRepository = new EncryptionRepositoryTest("tOtO");

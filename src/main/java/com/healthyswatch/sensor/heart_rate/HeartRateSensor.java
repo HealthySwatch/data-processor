@@ -5,7 +5,7 @@ import com.healthyswatch.sensor.Sensor;
 public interface HeartRateSensor extends Sensor<HeartRateSensorData> {
 
     @Override
-    default Class<HeartRateSensor> getSensorType() {
+    default Class<HeartRateSensor> type() {
         return HeartRateSensor.class;
     }
 

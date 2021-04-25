@@ -1,10 +1,7 @@
 package com.healthyswatch.sensor;
 
-public interface SensorProcessor<R extends SensorData, T extends Sensor<R>> {
+public interface SensorProcessor<T extends SensorData> {
 
-    void process(T sensor, R data);
+    void process(T data);
 
-    default void processUnsafe(Sensor<?> sensor, SensorData data) {
-        this.process((T)sensor, (R)data);
-    }
 }

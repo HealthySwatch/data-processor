@@ -1,10 +1,14 @@
 package com.healthyswatch.sensor;
 
+import java.util.Collection;
+
 public interface Sensor<T extends SensorData> {
 
-    String getName();
+    String name();
 
-    Class<? extends Sensor<?>> getSensorType();
+    Class<? extends Sensor<T>> type();
+
+    Collection<SensorProcessor<T>> processors();
 
     T read();
 

@@ -53,12 +53,12 @@ public class TrackingManagerImpl implements TrackingManager {
                 .map(e -> new LogEvent(e.getTime() - startAt, e.getSource(), e.getMessage()))
                 .sorted(Comparator.comparingLong(LogEvent::getTime))
                 .collect(Collectors.toList());
-        Collection<SavedSensorData> samples = trackingRepository.getSamples(startAt, now).stream()
-                .sorted(Comparator.comparingLong(SavedSensorData::getTime))
+        Collection<LogSample> samples = trackingRepository.getSamples(startAt, now).stream()
+                .sorted(Comparator.comparingLong(LogSample::getTime))
                 .collect(Collectors.toList());
         Map<String, Collection<JsonElement>> samplesByType = new HashMap<>();
-        for (SavedSensorData sample : samples) {
-            Collection<JsonElement> elements = samplesByType.computeIfAbsent(sample.getSensor(), k -> new ArrayList<>());
+        for (LogSample sample : samples) {
+            Collection<JsonElement> elements = samplesByType.computeIfAbsent(sample.getType(), k -> new ArrayList<>());
             JsonObject sampleJson = new JsonObject();
             sampleJson.addProperty("time", sample.getTime() - startAt);
             sampleJson.add("data", sample.getData());

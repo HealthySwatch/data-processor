@@ -5,7 +5,7 @@ import com.healthyswatch.sensor.Sensor;
 public interface BloodOxygenSensor extends Sensor<BloodOxygenSensorData> {
 
     @Override
-    default Class<BloodOxygenSensor> getSensorType() {
+    default Class<BloodOxygenSensor> type() {
         return BloodOxygenSensor.class;
     }
 

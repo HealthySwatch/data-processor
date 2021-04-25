@@ -5,14 +5,15 @@ import com.healthyswatch.model.LogEvent;
 import com.healthyswatch.sensor.SensorProcessor;
 import lombok.RequiredArgsConstructor;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RequiredArgsConstructor
-public class BloodOxygenSensorProcessor implements SensorProcessor<BloodOxygenSensorData, BloodOxygenSensor> {
+public class BloodOxygenSensorProcessor implements SensorProcessor<BloodOxygenSensorData> {
 
     private final HSWCore core;
-    private final Map<BloodOxygenSensor, Integer> counters = new HashMap<>();
+    private final BloodOxygenSensor sensor;
+
+    private final float alertThreshold;
+
+    private int counter;
 
     /*
     According to https://www.healthline.com/health/normal-blood-oxygen-level#oxygen-levels ,
@@ -23,21 +24,19 @@ public class BloodOxygenSensorProcessor implements SensorProcessor<BloodOxygenSe
         but, with COPD or other lung diseases normal could be 88% to 92%
      */
     @Override
-    public void process(BloodOxygenSensor sensor, BloodOxygenSensorData data) {
+    public void process(BloodOxygenSensorData data) {
         long now = System.currentTimeMillis();
-        float threshold = sensor.getAlertThreshold();
-        if (data.getOxygenPercent() < threshold) {
-            int count = counters.merge(sensor, 1, (v, a) -> Math.min(v + a, 10));
-            if (count == 5) {
+        if (data.getOxygenPercent() < alertThreshold) {
+            this.counter = Math.min(counter + 1, 10);
+            if (this.counter == 5) {
                 core.getTrackingRepository().addEvent(new LogEvent(
                         now,
-                        "blood-oxygen-sensor: " + sensor.getName(),
-                        String.format("Measured blood oxygen percent is below defined threshold: %.2f < %.2f", data.getOxygenPercent() * 100, threshold * 100)
+                        "blood-oxygen-sensor: " + sensor.name(),
+                        String.format("Measured blood oxygen percent is below defined threshold: %.2f < %.2f", data.getOxygenPercent() * 100, alertThreshold * 100)
                 ));
             }
         } else {
-            counters.merge(sensor, -1, (v, a) -> Math.max(v + a, -1));
+            this.counter = Math.max(counter - 1, 0);
         }
-        core.getTrackingRepository().addSample(sensor, data);
     }
 }
