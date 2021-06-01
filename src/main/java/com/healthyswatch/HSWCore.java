@@ -1,21 +1,19 @@
 package com.healthyswatch;
 
-import com.healthyswatch.extension.DiallerExtension;
-import com.healthyswatch.manager.EncryptionManager;
-import com.healthyswatch.manager.SensorManager;
-import com.healthyswatch.manager.TrackingManager;
+import com.healthyswatch.manager.*;
 import com.healthyswatch.manager.impl.EncryptionManagerImpl;
 import com.healthyswatch.manager.impl.SensorManagerImpl;
 import com.healthyswatch.manager.impl.TrackingManagerImpl;
+import com.healthyswatch.manager.impl.TranslationRegistryImpl;
 import com.healthyswatch.repository.EncryptionRepository;
 import com.healthyswatch.repository.TrackingRepository;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -27,6 +25,8 @@ public class HSWCore {
     private final SensorManager sensorManager;
     private final EncryptionManager encryptionManager;
     private final TrackingManager trackingManager;
+    private final EmergencyManager emergencyManager;
+    private final TranslationRegistry translationRegistry;
 
     private final EncryptionRepository encryptionRepository;
     private final TrackingRepository trackingRepository;
@@ -35,18 +35,16 @@ public class HSWCore {
     private ScheduledFuture<?> sensorsTickingTask;
     private ScheduledFuture<?> synchronizationTask;
 
-    @Setter
-    private DiallerExtension diallerExtension;
-
-    public HSWCore(EncryptionRepository encryptionRepository, TrackingRepository trackingRepository, DiallerExtension diallerExtension) {
+    public HSWCore(EncryptionRepository encryptionRepository, TrackingRepository trackingRepository, EmergencyManager emergencyManager, Locale locale) {
         this.executorService = Executors.newSingleThreadScheduledExecutor();
         this.sensorManager = new SensorManagerImpl();
         this.encryptionManager = new EncryptionManagerImpl(encryptionRepository);
         this.trackingManager = new TrackingManagerImpl("https://localhost:8000/api", trackingRepository, encryptionRepository, encryptionManager);
+        this.emergencyManager = emergencyManager != null ? emergencyManager : EmergencyManager.EMPTY;
+        this.translationRegistry = new TranslationRegistryImpl(locale);
 
         this.encryptionRepository = encryptionRepository;
         this.trackingRepository = trackingRepository;
-        this.diallerExtension = diallerExtension;
     }
 
     public void start() {
@@ -56,6 +54,7 @@ public class HSWCore {
         LocalTime syncTime = LocalTime.of(22, 30);
         LocalDate nowDate = LocalDate.now();
         LocalTime nowTime = LocalTime.now();
+        // compute time until next report creation based on the current hour and the defined report time
         long delay;
         if (nowTime.isBefore(syncTime)) {
             delay = nowTime.until(syncTime, ChronoUnit.SECONDS);

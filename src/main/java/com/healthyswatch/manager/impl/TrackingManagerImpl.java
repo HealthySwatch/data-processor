@@ -1,6 +1,9 @@
 package com.healthyswatch.manager.impl;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.healthyswatch.manager.EncryptionManager;
 import com.healthyswatch.manager.TrackingManager;

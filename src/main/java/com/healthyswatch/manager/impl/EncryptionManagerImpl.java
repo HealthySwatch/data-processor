@@ -133,7 +133,7 @@ public class EncryptionManagerImpl implements EncryptionManager {
         byte[] cipherTextBytes = Base64.getDecoder().decode(input);
 
         if (profile == null) {
-            throw new IllegalStateException("unable to decode input if no profile is provided");
+            throw new IllegalStateException("Unable to decode input if no profile is provided");
         }
 
         // Get secret key for cipher

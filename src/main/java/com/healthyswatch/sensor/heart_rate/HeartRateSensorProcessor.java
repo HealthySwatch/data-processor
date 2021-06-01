@@ -5,6 +5,10 @@ import com.healthyswatch.model.LogEvent;
 import com.healthyswatch.sensor.SensorProcessor;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.stream.Collectors;
+
 @RequiredArgsConstructor
 public class HeartRateSensorProcessor implements SensorProcessor<HeartRateSensorData> {
 
@@ -14,7 +18,7 @@ public class HeartRateSensorProcessor implements SensorProcessor<HeartRateSensor
     private final int minThreshold;
     private final int maxThreshold;
 
-    private int counter;
+    private final Deque<Integer> abnormalValues = new LinkedList<>();
 
     /*
     https://www.heart.org/en/healthy-living/fitness/fitness-basics/target-heart-rates
@@ -23,20 +27,32 @@ public class HeartRateSensorProcessor implements SensorProcessor<HeartRateSensor
     @Override
     public void process(HeartRateSensorData data) {
         long now = System.currentTimeMillis();
-        boolean belowMin = data.getBeatsPerMinute() < minThreshold;
-        boolean aboveMax = data.getBeatsPerMinute() > maxThreshold;
+        int value = data.getBeatsPerMinute();
+        boolean belowMin = value < minThreshold;
+        boolean aboveMax = value > maxThreshold;
         if ((belowMin || aboveMax)) {
-            this.counter = Math.min(counter + 1, 10);
-            if (this.counter == 5) {
+            // we store every bad value and count them to prevent false-positive
+            // this means it requires 4 detections in a row to trigger logging
+            // processing is done every 10 seconds and we store at max 10 abnormal values
+            this.abnormalValues.offerLast(value);
+            if (this.abnormalValues.size() > 10) {
+                this.abnormalValues.removeFirst();
+            }
+            if (this.abnormalValues.size() == 4) {
                 core.getTrackingRepository().addEvent(new LogEvent(
                         now,
                         "heart-rate-sensor: " + sensor.name(),
-                        belowMin ? String.format("Measured heart rate is below defined threshold: %d < %d", data.getBeatsPerMinute(), minThreshold)
-                                : String.format("Measured heart rate is above defined threshold: %d > %d", data.getBeatsPerMinute(), maxThreshold)
+                        belowMin ? core.getTranslationRegistry().text("sensor.heart_rate.alert.below", value, minThreshold)
+                                : core.getTranslationRegistry().text("sensor.heart_rate.alert.above", value, maxThreshold)
                 ));
+            } else if (this.abnormalValues.size() == 9) {
+                String abnormalValues = this.abnormalValues.stream().map(String::valueOf).collect(Collectors.joining(", "));
+                this.core.getEmergencyManager().emergency(core.getTranslationRegistry().text("sensor.heart_rate.alert.emergency", abnormalValues));
             }
         } else {
-            this.counter = Math.max(counter -1 , 0);
+            if (!this.abnormalValues.isEmpty()) {
+                this.abnormalValues.removeFirst();
+            }
         }
     }
 

@@ -27,12 +27,15 @@ public class BloodOxygenSensorProcessor implements SensorProcessor<BloodOxygenSe
     public void process(BloodOxygenSensorData data) {
         long now = System.currentTimeMillis();
         if (data.getOxygenPercent() < alertThreshold) {
+            // using a counter to prevent false-positive
+            // this means it requires 4 detections in a row to trigger logging
+            // processing is done every 10 seconds
             this.counter = Math.min(counter + 1, 10);
-            if (this.counter == 5) {
+            if (this.counter == 4) {
                 core.getTrackingRepository().addEvent(new LogEvent(
                         now,
                         "blood-oxygen-sensor: " + sensor.name(),
-                        String.format("Measured blood oxygen percent is below defined threshold: %.2f < %.2f", data.getOxygenPercent() * 100, alertThreshold * 100)
+                        core.getTranslationRegistry().text("sensor.blood_oxygen.alert.below", data.getOxygenPercent() * 100, alertThreshold * 100)
                 ));
             }
         } else {
