@@ -1,12 +1,12 @@
 package com.healthyswatch.model;
 
 import com.google.gson.JsonElement;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
 
 import java.util.Collection;
 import java.util.Map;
 
-@RequiredArgsConstructor
+@Data
 public class Report {
 
     private final long startAt;

@@ -1,11 +1,9 @@
 package com.healthyswatch.model;
 
 import com.google.gson.JsonElement;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
 
-@RequiredArgsConstructor
-@Getter
+@Data
 public class LogSample {
 
     private final String type;

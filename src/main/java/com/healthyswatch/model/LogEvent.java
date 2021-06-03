@@ -1,10 +1,8 @@
 package com.healthyswatch.model;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
 
-@RequiredArgsConstructor
-@Getter
+@Data
 public class LogEvent {
 
     private final long time;

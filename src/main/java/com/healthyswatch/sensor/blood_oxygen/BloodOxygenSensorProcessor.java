@@ -25,7 +25,7 @@ public class BloodOxygenSensorProcessor implements SensorProcessor<BloodOxygenSe
      */
     @Override
     public void process(BloodOxygenSensorData data) {
-        long now = System.currentTimeMillis();
+        long now = data.getTime();
         if (data.getOxygenPercent() < alertThreshold) {
             // using a counter to prevent false-positive
             // this means it requires 4 detections in a row to trigger logging

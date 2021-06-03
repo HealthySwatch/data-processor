@@ -3,12 +3,14 @@ package com.healthyswatch.translation;
 import com.healthyswatch.manager.TranslationRegistry;
 import com.healthyswatch.manager.impl.TranslationRegistryImpl;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Order(1)
 public class TranslationTest {
 
     @BeforeAll

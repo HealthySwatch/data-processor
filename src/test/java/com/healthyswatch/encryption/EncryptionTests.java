@@ -6,10 +6,12 @@ import com.healthyswatch.model.EncryptionProfile;
 import com.healthyswatch.repository.EncryptionRepository;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Order(0)
 public class EncryptionTests {
 
     @SneakyThrows

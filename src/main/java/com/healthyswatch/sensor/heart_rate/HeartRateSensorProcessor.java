@@ -26,7 +26,7 @@ public class HeartRateSensorProcessor implements SensorProcessor<HeartRateSensor
 
     @Override
     public void process(HeartRateSensorData data) {
-        long now = System.currentTimeMillis();
+        long now = data.getTime();
         int value = data.getBeatsPerMinute();
         boolean belowMin = value < minThreshold;
         boolean aboveMax = value > maxThreshold;
@@ -47,7 +47,9 @@ public class HeartRateSensorProcessor implements SensorProcessor<HeartRateSensor
                 ));
             } else if (this.abnormalValues.size() == 9) {
                 String abnormalValues = this.abnormalValues.stream().map(String::valueOf).collect(Collectors.joining(", "));
-                this.core.getEmergencyManager().emergency(core.getTranslationRegistry().text("sensor.heart_rate.alert.emergency", abnormalValues));
+                String emergencyText = core.getTranslationRegistry().text("sensor.heart_rate.alert.emergency", abnormalValues);
+                this.core.getTrackingRepository().addEvent(new LogEvent(now, "heart-rate-sensor: " + sensor.name(), emergencyText));
+                this.core.getEmergencyManager().emergency(emergencyText);
             }
         } else {
             if (!this.abnormalValues.isEmpty()) {
