@@ -21,6 +21,13 @@ public class EncryptionProfile {
     private final String randomPassword;
     private final String userPassword;
 
+    public String getUserPassword() {
+        if (userPassword != null) {
+            return userPassword;
+        }
+        return "";
+    }
+
     public JsonElement toAuthData() {
         JsonArray array = new JsonArray();
         array.add(Base64.getEncoder().encodeToString(cipherIV));
@@ -45,7 +52,7 @@ public class EncryptionProfile {
     public EncryptionProfile updateUserPassword(String password) {
         return new EncryptionProfile(
                 cipherIV.clone(), saltKey.clone(), secretKeyIteration, secretKeyLength,
-                cipherAuthTagLength, randomPassword, password != null ? password : ""
+                cipherAuthTagLength, randomPassword, password
         );
     }
 

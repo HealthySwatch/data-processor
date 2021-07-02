@@ -9,8 +9,14 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 public class EncryptionRepositoryTest implements EncryptionRepository {
 
+    private final String username;
     private final String userPassword;
     private EncryptionProfile profile;
+
+    @Override
+    public String getUsername() {
+        return username;
+    }
 
     @Override
     public String getUserPassword() {

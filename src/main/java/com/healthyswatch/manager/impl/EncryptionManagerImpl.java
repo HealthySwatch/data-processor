@@ -76,7 +76,7 @@ public class EncryptionManagerImpl implements EncryptionManager {
         int secretKeyIteration = 100000, secretKeyLength = 256;
         return new EncryptionProfile(cipherIVBytes, kdfSaltBytes,
                 secretKeyIteration, secretKeyLength, cipherAuthTagLen,
-                randomPassword, encryptionRepository.getUserPassword() != null ? encryptionRepository.getUserPassword() : "");
+                randomPassword, encryptionRepository.getUserPassword());
     }
 
     private SecretKey configureSecretKey(EncryptionProfile profile) throws NoSuchAlgorithmException, InvalidKeySpecException {

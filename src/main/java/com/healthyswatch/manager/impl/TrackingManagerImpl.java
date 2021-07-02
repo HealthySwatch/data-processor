@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -50,8 +51,8 @@ public class TrackingManagerImpl implements TrackingManager {
 
     @Override
     public void createDailyReport() {
-        long now = System.currentTimeMillis();
-        long startAt = now - TimeUnit.DAYS.toMillis(1);
+        long now = Instant.now().getEpochSecond();
+        long startAt = now - TimeUnit.DAYS.toSeconds(1);
         Collection<LogEvent> events = trackingRepository.getEvents(startAt, now).stream()
                 .map(e -> new LogEvent(e.getTime() - startAt, e.getSource(), e.getMessage()))
                 .sorted(Comparator.comparingLong(LogEvent::getTime))
@@ -86,9 +87,31 @@ public class TrackingManagerImpl implements TrackingManager {
         }
     }
 
+    private JsonObject payload(String data) {
+        JsonObject payload = new JsonObject();
+        EncryptionProfile encryptionProfile = encryptionRepository.getCurrentProfile();
+        JsonElement authArray = encryptionProfile.toAuthData();
+        payload.addProperty("version", 1);
+        payload.add("auth", authArray);
+        payload.addProperty("data", data);
+        return payload;
+    }
+
     private void initTrackingSettings(RemoteTrackingSettings settings) throws IOException {
         HttpURLConnection pasteRequest = (HttpURLConnection) new URL(baseUrl + "/v1/watch").openConnection();
         pasteRequest.setRequestMethod("POST");
+        JsonObject payloadJson = new JsonObject();
+        if (encryptionRepository.getUsername() != null) {
+            try {
+                String data = encryptionManager.encode(encryptionRepository.getUsername());
+                payloadJson.addProperty("name", payload(data).toString());
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to encode username", e);
+            }
+        }
+        pasteRequest.setDoOutput(true);
+        pasteRequest.setRequestProperty("X-Requested-With", "JSONHttpRequest");
+        pasteRequest.getOutputStream().write(payloadJson.toString().getBytes());
 
         // Server response
         int responseCode = pasteRequest.getResponseCode();
@@ -102,12 +125,7 @@ public class TrackingManagerImpl implements TrackingManager {
     }
 
     private void send(String encryptedData) throws IOException {
-        EncryptionProfile encryptionProfile = encryptionRepository.getCurrentProfile();
-        JsonElement authArray = encryptionProfile.toAuthData();
-        JsonObject payloadJson = new JsonObject();
-        payloadJson.addProperty("version", 1);
-        payloadJson.add("auth", authArray);
-        payloadJson.addProperty("data", encryptedData);
+        JsonObject payloadJson = payload(encryptedData);
 
         // POST Request
         HttpURLConnection pasteRequest = (HttpURLConnection) new URL(baseUrl + "/v1/watch/" + trackingRepository.getRemoteTrackingSettings().getApiToken() + "/report").openConnection();

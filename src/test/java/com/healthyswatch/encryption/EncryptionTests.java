@@ -18,7 +18,7 @@ public class EncryptionTests {
     @Test
     public void testSingleEncryptionThenDecryption() {
         String input = "this text is wonderfull!";
-        EncryptionRepository encryptionRepository = new EncryptionRepositoryTest(null);
+        EncryptionRepository encryptionRepository = new EncryptionRepositoryTest(null, null);
         EncryptionManager manager = new EncryptionManagerImpl(encryptionRepository);
         assertEquals(input, manager.decode(manager.encode(input), encryptionRepository.getCurrentProfile()));
     }
@@ -27,7 +27,7 @@ public class EncryptionTests {
     @Test
     public void testSingleEncryptionThenDecryptionWithPassword() {
         String input = "this one is not THAT great :/";
-        EncryptionRepository encryptionRepository = new EncryptionRepositoryTest("azerty123");
+        EncryptionRepository encryptionRepository = new EncryptionRepositoryTest(null, "azerty123");
         EncryptionManager manager = new EncryptionManagerImpl(encryptionRepository);
         assertEquals(input, manager.decode(manager.encode(input), encryptionRepository.getCurrentProfile()));
     }
@@ -36,7 +36,7 @@ public class EncryptionTests {
     @Test
     public void testSameConsecutiveEncryption() {
         String input = "you know what is great ? this segway, to our sponsor !";
-        EncryptionRepository encryptionRepository = new EncryptionRepositoryTest(null);
+        EncryptionRepository encryptionRepository = new EncryptionRepositoryTest(null, null);
         EncryptionManager manager = new EncryptionManagerImpl(encryptionRepository);
         assertNotEquals(manager.encode(input), manager.encode(input));
     }
@@ -46,7 +46,7 @@ public class EncryptionTests {
     public void testMultipleEncryptionThenMultipleDecryption() {
         String[] inputs = {"this text is wonderfull!", "this one is not THAT great :/", "you know what is great ? this segway, to our sponsor !"};
         EncryptionResult[] outputs = new EncryptionResult[inputs.length];
-        EncryptionRepository encryptionRepository = new EncryptionRepositoryTest(null);
+        EncryptionRepository encryptionRepository = new EncryptionRepositoryTest(null, null);
         EncryptionManager manager = new EncryptionManagerImpl(encryptionRepository);
         for (int i = 0; i < inputs.length; i++) {
             outputs[i] = new EncryptionResult(manager.encode(inputs[i]), encryptionRepository.getCurrentProfile());

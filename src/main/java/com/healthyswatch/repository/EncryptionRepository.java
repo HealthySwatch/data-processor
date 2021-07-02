@@ -4,6 +4,8 @@ import com.healthyswatch.model.EncryptionProfile;
 
 public interface EncryptionRepository {
 
+    String getUsername();
+
     String getUserPassword();
 
     EncryptionProfile getCurrentProfile();

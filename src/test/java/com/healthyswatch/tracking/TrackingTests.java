@@ -18,6 +18,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 public class TrackingTests {
@@ -30,7 +31,7 @@ public class TrackingTests {
         }
     }
 
-    private static void initNoSSL() throws NoSuchAlgorithmException, KeyManagementException {
+    public static void initNoSSL() throws NoSuchAlgorithmException, KeyManagementException {
         SSLContext context;
         context = SSLContext.getInstance("TLSv1.2");
         TrustManager[] trustManager = new TrustManager[] {
@@ -49,20 +50,20 @@ public class TrackingTests {
 
     //@Test
     public void testttt() {
-        long now = System.currentTimeMillis();
-        EncryptionRepository encryptionRepository = new EncryptionRepositoryTest("tOtO");
+        long now = Instant.now().getEpochSecond();
+        EncryptionRepository encryptionRepository = new EncryptionRepositoryTest("Thomas A.", "tOtO");
         EncryptionManager encryptionManager = new EncryptionManagerImpl(encryptionRepository);
 
         TrackingRepository trackingRepository = new TrackingRepositoryTest();
-        TrackingManager trackingManager = new TrackingManagerImpl("https://localhost:8000/api", trackingRepository, encryptionRepository, encryptionManager);
+        TrackingManager trackingManager = new TrackingManagerImpl("http://localhost:8000/api", trackingRepository, encryptionRepository, encryptionManager);
 
-        trackingRepository.addEvent(new LogEvent(now - TimeUnit.HOURS.toMillis(3), "TestSensor", "Hey you should move ur fat ass"));
+        trackingRepository.addEvent(new LogEvent(now - TimeUnit.HOURS.toSeconds(3), "TestSensor", "Hey you should move ur fat ass"));
         trackingManager.tickTracking();
 
-        trackingRepository.addEvent(new LogEvent(now - TimeUnit.HOURS.toMillis(2), "TestSensor", "Hey you should move ur fat ass"));
+        trackingRepository.addEvent(new LogEvent(now - TimeUnit.HOURS.toSeconds(2), "TestSensor", "Hey you should move ur fat ass"));
         trackingManager.tickTracking();
 
-        trackingRepository.addEvent(new LogEvent(now - TimeUnit.HOURS.toMillis(1), "TestSensor", "Hey you should move ur fat ass"));
+        trackingRepository.addEvent(new LogEvent(now - TimeUnit.HOURS.toSeconds(1), "TestSensor", "Hey you should move ur fat ass"));
         trackingManager.tickTracking();
         System.out.println(trackingRepository.getRemoteTrackingSettings());
         System.out.println("random password: " + Base58.encode(encryptionRepository.getCurrentProfile().getRandomPassword().getBytes()));
